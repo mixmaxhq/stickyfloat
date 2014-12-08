@@ -15,7 +15,13 @@
                     stickToBottom   (boolean, false) - to make the element stick to the bottom instead to the top
 					onReposition    (function)       - a callback to be invoked when the floated element is repositioned
 					scrollArea      (DOM element, window) - The element which stickyfloat should track it's scroll position (for situations with inner scroll)
-					
+                    target          (Element, String)- An element to which to stick, rather than sticking to the visible bounds of
+                                                       the floated element's parent. The floated element should have 'position: absolute'.
+                                                       This may also be a jQuery selector identifying the target element, in which case
+                                                       the target will be dynamically determined. This allows an element to be floated above
+                                                       a UI that is rapidly re-rendering. _startOffset_ will be ignored if this is set–the
+                                                       element will be animated as necessary to follow the target.
+
    @example         Example: jQuery('#menu').stickyfloat({duration: 400});
  *
  **/
@@ -98,7 +104,8 @@
                     //wScroll = w.pageYOffset || doc.documentElement.scrollTop,
                     //wHeight = w.innerHeight || doc.documentElement.offsetHeight,
 					areaScrollTop = this.settings.scrollArea == w ? doc.documentElement.scrollTop : this.settings.scrollArea.scrollTop,
-                    areaHeight    = this.settings.scrollArea == w ? doc.documentElement.offsetHeight : this.settings.scrollArea.offsetHeight;
+                    areaHeight    = this.settings.scrollArea == w ? doc.documentElement.offsetHeight : this.settings.scrollArea.offsetHeight,
+                    targetObj = settings.target && $(settings.target)[0];
 				
 				this.areaViewportHeight = this.settings.scrollArea == w ? doc.documentElement.clientHeight : this.settings.scrollArea.clientHeight;
 				this.stickyHeight = $obj[0].clientHeight;
@@ -118,10 +125,19 @@
 
                 // if window scrolled down more than startOffset OR obj position is greater than
                 // the top position possible (+ offsetY) AND window size must be bigger than Obj size
-                if( ((pastStartOffset || objFartherThanTopPos) && !objBiggerThanArea) || force ){
-                    this.newpos = settings.stickToBottom ? 
+                if( ((pastStartOffset || objFartherThanTopPos) && !objBiggerThanArea) || targetObj || force ){
+                    if (targetObj) {
+                        var $targetObj = $(targetObj),
+                            targetTop = $targetObj.offset().top,
+                            targetHeight = $targetObj.height();
+                        this.newpos = settings.stickToBottom ?
+                                targetTop + targetHeight + settings.offsetY :
+                                targetTop - settings.offsetY - objHeight;
+                    } else {
+                        this.newpos = settings.stickToBottom ?
                                 areaScrollTop + areaHeight - this.stickyHeight - settings.startOffset - settings.offsetY : 
                                 areaScrollTop - settings.startOffset + settings.offsetY;
+                    }
 
                     // made sure the floated element won't go beyond a certain maximum bottom position
                     if( this.newpos > maxTopPos && settings.lockBottom )
@@ -130,7 +146,7 @@
                     if( this.newpos < settings.offsetY )
                         this.newpos = settings.offsetY;
                     // if window scrolled < starting offset, then reset Obj position (settings.offsetY);
-                    else if( areaScrollTop < settings.startOffset && !settings.stickToBottom ) 
+                    else if( areaScrollTop < settings.startOffset && !settings.stickToBottom && !targetObj ) 
                         this.newpos = settings.offsetY;
 						
                     // if duration is set too low OR user wants to use css transitions, then do not use jQuery animate
