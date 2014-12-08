@@ -13,6 +13,8 @@
                     delay           (number, 0)      - delay in milliseconds  until the animnations starts
                     easing          (string, linear) - easing function (jQuery has by default only 'swing' & 'linear')
                     stickToBottom   (boolean, false) - to make the element stick to the bottom instead to the top
+                    scrollTarget    (string)         - a jQuery selector identifying other element(s), besides the window, on
+                                                       whose scrolling the floated element should be repositioned
    @example         Example: jQuery('#menu').stickyfloat({duration: 400});
  *
  **/
@@ -76,6 +78,11 @@
                     that.rePosition(true); // do a quick repositioning without any duration or delay
                     $(w).on('scroll.sticky, resize.sticky', that.onScroll);
                 });
+
+                if (this.settings.scrollTarget) {
+                    $(this.settings.scrollTarget).on('scroll.sticky', that.onScroll);
+                }
+
                 // for every element, attach it's instanced 'sticky'
                 this.obj.data('_stickyfloat', that);
             },
@@ -146,6 +153,9 @@
 
             destroy : function(){
                 $(window).off('scroll.sticky, resize.sticky', this.onScroll);
+                if (this.settings.scrollTarget) {
+                    $(this.settings.scrollTarget).off('scroll.sticky', this.onScroll);
+                }
                 this.obj.removeData();
                 return this.obj;
             }

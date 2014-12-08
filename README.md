@@ -58,3 +58,7 @@ Easing function (jQuery has by default only ‘swing’ & ‘linear’)
 	
 ### cssTransition (false)
 if you wish to manualy set your own CSS3 transion styles on the floated element, flag this setting as 'true'
+
+### scrollTarget
+A jQuery selector identifying other element(s), besides the window, on whose
+scrolling the floated element should be repositioned.
